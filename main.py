@@ -1,6 +1,7 @@
 import pygame
 import os
 from sprites import *
+#from functions import *
 pygame.font.init() #fonts
 pygame.mixer.init() #sound effects
 
@@ -39,11 +40,7 @@ BACKGROUND = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'va
 #SpriteSheets
 ss = spritesheet(os.path.join('Assets','naruto_sheet.bmp'))
 #naruto_images=[]
-naruto_images = ss.images_at( (pygame.Rect(200,493,42,33),pygame.Rect(38,446,56,32)), colorkey=(73,176,255))
-naruto_running = [
-    SpriteStripAnim(os.path.join('Assets','naruto_sheet.bmp'), pygame.Rect(200,493,42,33), 1, (73,176,255), True, FPS/12),
-    SpriteStripAnim(os.path.join('Assets','naruto_sheet.bmp'), pygame.Rect(38,446,56,32), 1, (73,176,255), True, FPS/12),
-]
+naruto_images = ss.images_at( (pygame.Rect(4,11,29,44), pygame.Rect(200,493,42,33),pygame.Rect(38,446,56,32)), colorkey=(73,176,255))
 
 #SOUNDS
 BULLET_HIT_SOUND = pygame.mixer.Sound(os.path.join('Assets', 'impact.wav'))
@@ -54,7 +51,13 @@ YELLOW_HIT = pygame.USEREVENT +1
 RED_HIT = pygame.USEREVENT +2
 
 
-def draw_window(red, yellow, red_bullets, yellow_bullets, red_health, yellow_health, n):
+def implement_physics(red, yellow):
+    if red.y + VEL + red.height < HEIGHT-15:
+        red.y += VEL//2
+    if yellow.y + VEL + yellow.height < HEIGHT-15:
+        yellow.y += VEL//2
+
+def draw_window(red, yellow, red_bullets, yellow_bullets, red_health, yellow_health, a, b):
     #fill go first, then blit
     #WIN.fill(WHITE)
     WIN.blit(BACKGROUND, (0, 0))
@@ -69,7 +72,7 @@ def draw_window(red, yellow, red_bullets, yellow_bullets, red_health, yellow_hea
 
     WIN.blit(YELLOW_SPACESHIP, (yellow.x, yellow.y))
     #WIN.blit(RED_SPACESHIP, (red.x, red.y))
-    image=naruto_images[n]
+    image=naruto_images[b]
     WIN.blit(image, (red.x, red.y))
 
     for bullet in red_bullets:
@@ -86,19 +89,34 @@ def yellow_handle_movement(keys_pressed, yellow):
     if keys_pressed[pygame.K_d] and yellow.x + VEL + yellow.width < BORDER.x: #RIGHT
         yellow.x += VEL
     if keys_pressed[pygame.K_s] and yellow.y + VEL + yellow.height < HEIGHT-15: #UP 
-        yellow.y += VEL
+        yellow.y += 2*VEL
     if keys_pressed[pygame.K_w] and yellow.y - VEL > 0: #DOWN
         yellow.y -= VEL
+    return 0
 
-def red_handle_movement(keys_pressed, red):
+def red_handle_movement(keys_pressed, red, m):
+    
+    var = m[1]
+
     if keys_pressed[pygame.K_LEFT] and red.x - VEL > BORDER.x + BORDER.width: #LEFT
         red.x -= VEL
-    if keys_pressed[pygame.K_RIGHT] and red.x + VEL + red.width < WIDTH: #RIGHT
+        if var < 2:
+            m.remove(var)
+            var+=1
+        else:
+            m.remove(var)
+            var=1
+        m.append(var)
+    elif keys_pressed[pygame.K_RIGHT] and red.x + VEL + red.width < WIDTH: #RIGHT
         red.x += VEL
-    if keys_pressed[pygame.K_DOWN] and red.y + VEL + red.height < HEIGHT-15: #DOWN
+    elif keys_pressed[pygame.K_DOWN] and red.y + VEL + red.height < HEIGHT-15: #DOWN
         red.y += VEL
-    if keys_pressed[pygame.K_UP] and red.y - VEL > 0: #UP
-        red.y -= VEL
+    elif keys_pressed[pygame.K_UP] and red.y - VEL > 0: #UP
+        red.y -= 2*VEL
+    else:
+        m.remove(var)
+        var=0
+        m.append(var)
 
 def draw_winner(text):
     draw_text = WINNER_FONT.render(text, 1, WHITE)
@@ -135,15 +153,17 @@ def main():
     red_health = 10
     yellow_health = 10
 
-    #
-    n=0
-    i=0
+    n = [99, 0]
+    m = [99, 0]
+    num_events=0
+
 
     #main loop
     clock = pygame.time.Clock()
     run =True
     while run:
         clock.tick(FPS) #run while loop at FPS speed
+
         for event in pygame.event.get():  #check in-game events
             if event.type == pygame.QUIT:
                 run = False
@@ -177,24 +197,16 @@ def main():
         if winner_text != "":
             draw_winner(winner_text)
             break
-
-        if n==12:
-            n=0
-            i=0
-        elif n<6: 
-            n+=1
-            i=0
-        elif n>=6:
-            n+=1
-            i=1
         
+
         #print(red_bullets, yellow_bullets)
         keys_pressed = pygame.key.get_pressed() #which keys are pressed
         yellow_handle_movement(keys_pressed, yellow)
-        red_handle_movement(keys_pressed, red)
-
+        red_handle_movement(keys_pressed, red, m)
         handle_bullets(yellow_bullets, red_bullets, yellow, red)
-        draw_window(red, yellow, red_bullets, yellow_bullets, red_health, yellow_health, i)
+        draw_window(red, yellow, red_bullets, yellow_bullets, red_health, yellow_health, n[1], m[1])
+        implement_physics(red, yellow)
+
     
     main()
     #pygame.quit()
