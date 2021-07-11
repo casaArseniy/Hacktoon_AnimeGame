@@ -1,5 +1,6 @@
 import pygame
 import os
+import pygame_menu
 from sprites import *
 from classes import *
 pygame.font.init() #fonts
@@ -62,6 +63,7 @@ S_OUCH = pygame.mixer.Sound(os.path.join('Assets', 'sasukeow.wav'))
 
 YELLOW_HIT = pygame.USEREVENT +1
 RED_HIT = pygame.USEREVENT +2
+
 
 
 def implement_physics(red, yellow):
@@ -268,8 +270,7 @@ def handle_bullets(yellow_bullets, red_bullets, yellow, red):
             red_bullets.remove(bullet)
 
 
-def main():
-
+def game():
     red = pygame.Rect(700,300, SPACESHIP_WIDTH, SPACESHIP_HEIGHT)
     yellow=pygame.Rect(100,300, SPACESHIP_WIDTH, SPACESHIP_HEIGHT)
 
@@ -329,9 +330,10 @@ def main():
 
         if red_health<=0:
             winner_text = "Sasuke Escapes!"
+            draw_winner(winner_text)
+            break
         if yellow_health<=0:
             winner_text = "Naruto Wins!"
-        if winner_text != "":
             draw_winner(winner_text)
             break
 
@@ -355,9 +357,27 @@ def main():
         implement_physics(red, yellow)
 
     
-    main()
+    game()
     #pygame.quit()
+def help():
+    menu = pygame_menu.Menu('Help!', WIDTH, HEIGHT,theme=pygame_menu.themes.THEME_ORANGE)
+    menu.add.label("For Sasuke: Use AWD keys to move")
+    menu.add.label("Left CTRL button for Sasuke to attack")
+    menu.add.label("For Naruto: Use Arrow Keys to move")
+    menu.add.label("Right CTRL button for Naruto to attack")
+    menu.add.label("Pressing Up and Sideways makes you fly")
+    menu.add.label("Flying takes Power. Having zero power hurts you")
+    menu.add.label("Power recharges when you don't fly")
+    menu.add.button('Back', main)
+    menu.mainloop(WIN)
+def main():
 
+
+    menu = pygame_menu.Menu('Welcome to Naruto Vs Sasuke!', WIDTH, HEIGHT,theme=pygame_menu.themes.THEME_ORANGE)
+    menu.add.button('Play', game)
+    menu.add.button('Help', help)
+    menu.add.button('Quit', pygame_menu.events.EXIT)
+    menu.mainloop(WIN)
 
 if __name__ == "__main__":
     main()
