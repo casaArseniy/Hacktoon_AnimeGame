@@ -8,4 +8,4 @@
 
 Spritesheets used are not mine, the name of their creator is on them. Took them from <a href ="https://www.narutohq.com/sprites.php">here.</a>
 
-<p> Game is very rough and not very fun to play but if you're a real Naruto fan then you will play it and like it. </p>
+<p> Game is very rough and not very fun to play, only for the real hardcore fans. </p>
