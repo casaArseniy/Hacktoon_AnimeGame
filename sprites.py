@@ -17,7 +17,7 @@ class spritesheet(object):
             if colorkey is -1:
                 colorkey = image.get_at((0,0))
             image.set_colorkey(colorkey, pygame.RLEACCEL)
-        if rectangle == (4,11,29,44):
+        if rectangle == (4,11,29,44) or rectangle == (410,4715,62,60) or rectangle == (231,3703,47,46):
             image = pygame.transform.flip(image, True, False) 
         return image
     # Load a whole bunch of images and return them as a list

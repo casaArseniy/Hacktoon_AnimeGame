@@ -20,7 +20,9 @@ WHITE =(255,255,255)
 BLACK = (0,0,0)
 RED = (255,0,0)
 YELLOW = (255,255,0)
-BORDER = pygame.Rect(WIDTH//2-5, 0, 10, HEIGHT)
+ORANGE = (255,69,0)
+VIOLET = (143, 0, 255)
+
 COLORKEY_SS_NARUTO=(73,176,255)
 
 SPACESHIP_WIDTH, SPACESHIP_HEIGHT = 55, 40
@@ -30,30 +32,32 @@ VEL = 5 #object movement velocity
 BULLET_VEL = 7 #bullets movement velocity
 MAX_BULLETS = 3 # number of bullets
 
-#IMAGES
-#YELLOW_SPACESHIP_IMAGE = pygame.image.load(os.path.join('Assets', 'spaceship_yellow.png'))
-#YELLOW_SPACESHIP = pygame.transform.rotate(pygame.transform.scale(YELLOW_SPACESHIP_IMAGE, (SPACESHIP_WIDTH,SPACESHIP_HEIGHT)),90)
-#RED_SPACESHIP_IMAGE = pygame.image.load(os.path.join('Assets', 'spaceship_red.png'))
-#RED_SPACESHIP = pygame.transform.rotate(pygame.transform.scale(RED_SPACESHIP_IMAGE, (SPACESHIP_WIDTH,SPACESHIP_HEIGHT)),270)
+
+PLATFORM_IMAGE =  pygame.image.load(os.path.join('Assets', 'platform.png'))
+PLATFORM = pygame.transform.scale(PLATFORM_IMAGE, (50,20))
 
 BACKGROUND = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'valley.jpg')), (WIDTH, HEIGHT))
 
 #SpriteSheets
 naruto_ss = spritesheet(os.path.join('Assets','naruto_sheet.bmp'))
-#stance, left, left, right, right, jump
+#stance, left, left, right, right, jump, air_jump_left, air_jump_right
 naruto_images = naruto_ss.images_at( (pygame.Rect(4,11,29,44), pygame.Rect(200,493,42,33),pygame.Rect(38,446,56,32), 
                                pygame.Rect(11,402,36,28), pygame.Rect(43,401,33,28),
-                               pygame.Rect(4,268,28,51)), colorkey=(73,176,255))
+                               pygame.Rect(4,268,28,51),
+                               pygame.Rect(407,4712,67,64), pygame.Rect(410,4715,62,60)), colorkey=(73,176,255))
 
 sasuke_ss=spritesheet(os.path.join('Assets','sasuke_sheet.bmp'))
-#stance, left, left, right, right, jump
+#stance, left, left, right, right, jump, air_jump_right, air_jump_left
 sasuke_images=sasuke_ss.images_at((pygame.Rect(1,18,28,41), pygame.Rect(130,441,48,34), pygame.Rect(64,440,65,39),
                                     pygame.Rect(23,392,34,33), pygame.Rect(58,392,32,36),
-                                    pygame.Rect(1,198,24,44)), colorkey=(73,176,255))
+                                    pygame.Rect(1,198,24,44),
+                                    pygame.Rect(231,3703,44,44),pygame.Rect(231,3703,47,46)), colorkey=(73,176,255))
 
 #SOUNDS
-BULLET_HIT_SOUND = pygame.mixer.Sound(os.path.join('Assets', 'impact.wav'))
+BULLET_HIT_SOUND = pygame.mixer.Sound(os.path.join('Assets', 'hit.wav'))
 BULLET_FIRE_SOUND = pygame.mixer.Sound(os.path.join('Assets', 'impact.wav'))
+N_OUCH = pygame.mixer.Sound(os.path.join('Assets', 'narutoow.wav'))
+S_OUCH = pygame.mixer.Sound(os.path.join('Assets', 'sasukeow.wav'))
 
 
 YELLOW_HIT = pygame.USEREVENT +1
@@ -61,21 +65,43 @@ RED_HIT = pygame.USEREVENT +2
 
 
 def implement_physics(red, yellow):
-    if red.y + VEL + red.height < HEIGHT-15:
+
+    platform1 = (300, 350, 50, 20)
+    platform2 = (550, 350, 50, 20)
+    platform3 = (150, 250, 50, 20)
+    platform4 = (700, 250, 50, 20)
+
+    if red.colliderect(platform1) or red.colliderect(platform2) or red.colliderect(platform3) or red.colliderect(platform4):
+        if (red.x<=515 and red.x>=340) or (red.x>=610 and red.x<=670) or (red.x>=190 and red.x<=270) or (red.x<=125):
+            red.y += VEL//2
+        pass
+    elif (red.y + VEL + red.height < HEIGHT-15):
         red.y += VEL//2
-    if yellow.y + VEL + yellow.height < HEIGHT-15:
+
+    if yellow.colliderect(platform1) or yellow.colliderect(platform2) or yellow.colliderect(platform3) or yellow.colliderect(platform4):
+        if (yellow.x<=515 and yellow.x>=340) or (yellow.x>=610 and yellow.x<=670) or (yellow.x>=190 and yellow.x<=270) or (yellow.x<=125):
+            yellow.y += VEL//2
+        pass
+    elif yellow.y + VEL + yellow.height < HEIGHT-15:
         yellow.y += VEL//2
 
-def draw_window(red, yellow, red_bullets, yellow_bullets, red_health, yellow_health, a, b):
+def draw_window(red, yellow, red_bullets, yellow_bullets, red_health, yellow_health, a, b, yellow_flying, red_flying):
     #fill go first, then blit
     #WIN.fill(WHITE)
     WIN.blit(BACKGROUND, (0, 0))
-    #pygame.draw.rect(WIN,BLACK,BORDER)
+    WIN.blit(PLATFORM, (300, 350))
+    WIN.blit(PLATFORM, (550, 350))
+    WIN.blit(PLATFORM, (150, 250))
+    WIN.blit(PLATFORM, (700, 250))
 
-    red_health_text = HEALTH_FONT.render("HEALTH: " + str(red_health), 1, WHITE)
-    yellow_health_text = HEALTH_FONT.render("HEALTH: " + str(yellow_health), 1, WHITE)
+    red_health_text = HEALTH_FONT.render("HEALTH: " + str(red_health), 1, YELLOW)
+    yellow_health_text = HEALTH_FONT.render("HEALTH: " + str(yellow_health), 1, VIOLET)
+    yellow_power_text = HEALTH_FONT.render("POWER: " + str(yellow_flying[1]), 1, RED)
+    red_power_text = HEALTH_FONT.render("POWER: " + str(red_flying[1]), 1, ORANGE)
     WIN.blit(red_health_text, (WIDTH-red_health_text.get_width()-10, 10))
+    WIN.blit(red_power_text, (WIDTH-red_health_text.get_width()-10, 50))
     WIN.blit(yellow_health_text, (10, 10))
+    WIN.blit(yellow_power_text, (10, 50))
 
 
 
@@ -92,11 +118,43 @@ def draw_window(red, yellow, red_bullets, yellow_bullets, red_health, yellow_hea
 
     pygame.display.update()
 
-def yellow_handle_movement(keys_pressed, yellow, n):
+def jump_handle(jump_type, color, array, var):
+    if jump_type == 0:
+        if (color.y-VEL < 440 and color.y-VEL > 430) or (color.y-VEL<320 and color.y>310 and ((color.x>520 and color.x<595) or (color.x>270 and color.x<340))) or (color.y-VEL<220 and color.y>210 and ((color.x>=670 and color.x<740) or (color.x>125 and color.x<190))):
+            color.y -= 150
+            array.remove(var)
+            var=5
+            array.append(var)
+        
+         
+
+#sasuke
+def yellow_handle_movement(keys_pressed, yellow, n, yellow_flying):
 
     var=n[1]
+    fly=yellow_flying[1]
 
-    if keys_pressed[pygame.K_a] and yellow.x - VEL > 0: #LEFT
+    if (keys_pressed[pygame.K_a] and yellow.x - VEL > 0) and keys_pressed[pygame.K_w] and yellow.y - VEL > 0:
+        if fly>0:
+            yellow.y -= 2*VEL
+            yellow.x -= VEL
+            n.remove(var)
+            var=7
+            n.append(var)
+            yellow_flying.remove(fly)
+            fly-=10
+            yellow_flying.append(fly)
+    elif (keys_pressed[pygame.K_d] and yellow.x + VEL + yellow.width < WIDTH) and keys_pressed[pygame.K_w] and yellow.y - VEL > 0:
+        if fly>0:
+            yellow.y -= 2*VEL
+            yellow.x += VEL
+            n.remove(var)
+            var=6
+            n.append(var)
+            yellow_flying.remove(fly)
+            fly-=4
+            yellow_flying.append(fly)
+    elif keys_pressed[pygame.K_a] and yellow.x - VEL > 0: #LEFT
         yellow.x -= VEL
         if var < 2:
             n.remove(var)
@@ -119,26 +177,40 @@ def yellow_handle_movement(keys_pressed, yellow, n):
             n.remove(var)
             var=3
         n.append(var)
-    elif keys_pressed[pygame.K_w] and yellow.y - VEL > 0: #UP
-        yellow.y -= 2*VEL
-        n.remove(var)
-        var=5
-        n.append(var)
-    #elif keys_pressed[pygame.K_s] and yellow.y + VEL + yellow.height < HEIGHT-15: #DOWN 
-    #    yellow.y += VEL
-    #    n.remove(var)
-    #    var=5
-    #    n.append(var)
+    elif keys_pressed[pygame.K_w]: #and yellow.y - VEL > HEIGHT-200: #UP
+        jump_handle(0,yellow,n, var)
     else:
         n.remove(var)
         var=0
         n.append(var)
 
-def red_handle_movement(keys_pressed, red, m):
+#naruto
+def red_handle_movement(keys_pressed, red, m, red_flying):
     
     var = m[1]
+    fly=red_flying[1]
 
-    if keys_pressed[pygame.K_LEFT] and red.x - VEL > 0: #BORDER.x + BORDER.width: #LEFT
+    if (keys_pressed[pygame.K_LEFT] and red.x - VEL > 0) and (keys_pressed[pygame.K_UP] and red.y - VEL > 0):
+        if fly>0:
+            red.y -= 2*VEL
+            red.x -= VEL
+            m.remove(var)
+            var=6
+            m.append(var)
+            red_flying.remove(fly)
+            fly-=4
+            red_flying.append(fly)
+    elif (keys_pressed[pygame.K_RIGHT] and red.x + VEL + red.width < WIDTH) and (keys_pressed[pygame.K_UP] and red.y - VEL > 0):
+        if fly>0:
+            red.y -= 2*VEL
+            red.x += VEL
+            m.remove(var)
+            var=7
+            m.append(var)
+            red_flying.remove(fly)
+            fly-=4
+            red_flying.append(fly)
+    elif keys_pressed[pygame.K_LEFT] and red.x - VEL > 0: #BORDER.x + BORDER.width: #LEFT
         red.x -= VEL
         if var < 2:
             m.remove(var)
@@ -161,13 +233,8 @@ def red_handle_movement(keys_pressed, red, m):
             m.remove(var)
             var=3
         m.append(var)
-    #elif keys_pressed[pygame.K_DOWN] and red.y + VEL + red.height < HEIGHT-15: #DOWN
-    #    red.y += VEL
-    elif keys_pressed[pygame.K_UP] and red.y - VEL > 0: #UP
-        red.y -= 2*VEL
-        m.remove(var)
-        var=5
-        m.append(var)
+    elif keys_pressed[pygame.K_UP]: #UP
+        jump_handle(0,red,m,var)
     else:
         m.remove(var)
         var=0
@@ -209,11 +276,14 @@ def main():
     red_bullets = []
     yellow_bullets = []
 
-    red_health = 10
-    yellow_health = 10
+    red_health = 100
+    yellow_health = 100
 
     n = [99, 0]
     m = [99, 0]
+
+    red_flying=[-1, 100]
+    yellow_flying=[-1, 100]
    
     #main loop
     clock = pygame.time.Clock()
@@ -250,28 +320,38 @@ def main():
             winner_text=""
 
             if event.type == RED_HIT:
-                red_health-=1
+                red_health-=10
                 BULLET_HIT_SOUND.play()
 
             if event.type == YELLOW_HIT:
-                yellow_health-=1
+                yellow_health-=10
                 BULLET_HIT_SOUND.play()
 
         if red_health<=0:
-            winner_text = "Yellow Wins!"
+            winner_text = "Sasuke Escapes!"
         if yellow_health<=0:
-            winner_text = "Red Wins!"
+            winner_text = "Naruto Wins!"
         if winner_text != "":
             draw_winner(winner_text)
             break
-        
 
-        #print(red_bullets, yellow_bullets)
+        if red_flying[1] < 100:
+            red_flying[1]+=1
+        if yellow_flying[1] < 100:
+            yellow_flying[1]+=1
+        if red_flying[1] < 0:
+            red_health-=1
+            N_OUCH.play()
+        if yellow_flying[1] < 0:
+            yellow_health-=1
+            S_OUCH.play()
+
+        
         keys_pressed = pygame.key.get_pressed() #which keys are pressed
-        yellow_handle_movement(keys_pressed, yellow, n)
-        red_handle_movement(keys_pressed, red, m)
+        yellow_handle_movement(keys_pressed, yellow, n, yellow_flying)
+        red_handle_movement(keys_pressed, red, m, red_flying)
         handle_bullets(yellow_bullets, red_bullets, yellow, red)
-        draw_window(red, yellow, red_bullets, yellow_bullets, red_health, yellow_health, n[1], m[1])
+        draw_window(red, yellow, red_bullets, yellow_bullets, red_health, yellow_health, n[1], m[1], yellow_flying, red_flying)
         implement_physics(red, yellow)
 
     
