@@ -6,4 +6,4 @@
   <li>pygame-menu
 </ul>
 
-Spritesheets used are not mine, the name of their creator is on them. Took them from here <a href ="https://www.narutohq.com/sprites.php">here.</a>
+Spritesheets used are not mine, the name of their creator is on them. Took them from <a href ="https://www.narutohq.com/sprites.php">here.</a>
